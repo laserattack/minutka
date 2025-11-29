@@ -105,7 +105,7 @@ draw_screen()
 
     symbols_count = strlen(g_state.time);
     step_x = g_state.font_width+1;
-    total_width = step_x*strlen(g_state.time)-1;
+    total_width = step_x*(sizeof(g_state.time)-1)-1;
 
     start_x = g_state.center.x-total_width/2;
     start_y = g_state.center.y-g_state.font_height/2;
