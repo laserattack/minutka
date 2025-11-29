@@ -13,16 +13,16 @@
 /* types */
 
 enum errors {
-    ERR_DRAW_DIGIT = -1337,
+    ERR_DRAW_SYMBOL = -1337,
     ERR_TERMINAL_SIZE,
 };
 
 typedef struct {
     int x, y;
-} Vec2;
+} Pos;
 
 typedef struct {
-    Vec2 center;
+    Pos center;
     int font_width, font_height;
     uintattr_t fg, bg;
     char time[9]; /* HH:MM:SS */
@@ -31,7 +31,7 @@ typedef struct {
 /* global vars */
 
 const char
-g_digit_font[256][BASE_FONT_HEIGHT][BASE_FONT_WIDTH+1] = {
+g_font[256][BASE_FONT_HEIGHT][BASE_FONT_WIDTH+1] = {
     ['0'] = { "###", "# #", "# #", "# #", "###" }, // 0
     ['1'] = { " # ", "## ", " # ", " # ", "###" }, // 1
     ['2'] = { "###", "  #", "###", "#  ", "###" }, // 2
@@ -78,16 +78,16 @@ set_current_time(char *buffer)
 }
 
 int
-draw_digit(int digit, int x, int y, uintattr_t fg, uintattr_t bg)
+draw_symbol(int code, Pos pos, uintattr_t fg, uintattr_t bg)
 {
     int dx, dy;
 
-    if (digit < 0 || digit > 255)
-        return g_last_errno = ERR_DRAW_DIGIT;
+    if (code < 0 || code > 255)
+        return g_last_errno = ERR_DRAW_SYMBOL;
     for (dy = 0; dy < g_state.font_height; dy++) {
         for (dx = 0; dx < g_state.font_width; dx++) {
-            if (g_digit_font[digit][dy][dx] == '#') {
-                tb_set_cell(x+dx, y+dy, ' ', fg, bg);
+            if (g_font[code][dy][dx] == '#') {
+                tb_set_cell(pos.x+dx, pos.y+dy, ' ', fg, bg);
             }
         }
     }
@@ -98,23 +98,28 @@ draw_digit(int digit, int x, int y, uintattr_t fg, uintattr_t bg)
 int
 draw_screen()
 {
-    int i;
+    int i, step_x, start_x, start_y, symbols_count, total_width;
 
     /* clear internal buffer */
     tb_clear();
-    set_current_time(g_state.time);
 
-    for (i = 0; i < (int)sizeof(g_state.time); ++i) {
-        int pos_x, pos_y, step_x;
-        uintattr_t fg, bg;
+    symbols_count = strlen(g_state.time);
+    step_x = g_state.font_width+1;
+    total_width = step_x*strlen(g_state.time)-1;
 
-        step_x = g_state.font_width+1;
-        pos_x = g_state.center.x+i*step_x;
-        pos_y = g_state.center.y;
-        fg = g_state.fg;
-        bg = g_state.bg;
+    start_x = g_state.center.x-total_width/2;
+    start_y = g_state.center.y-g_state.font_height/2;
 
-        if (draw_digit(g_state.time[i], pos_x, pos_y, fg, bg) < 0)
+    for (i = 0; i < symbols_count; ++i) {
+        Pos pos;
+
+        pos = (Pos){
+            .x = start_x+i*step_x,
+            .y = start_y,
+        };
+
+        if (draw_symbol(g_state.time[i],
+                    pos, g_state.fg, g_state.bg) < 0)
             return g_last_errno;
     }
 
@@ -158,9 +163,6 @@ handle_event()
         break;
     }
 
-    if (check_terminal() < 0)
-        return g_last_errno;
-
     return 1;
 }
 
@@ -181,8 +183,10 @@ main_loop()
     tb_init();
     init_state();
     while (1) {
+        set_current_time(g_state.time);
         if (draw_screen() < 0) break;
         if (handle_event() <= 0) break;
+        if (check_terminal() < 0) break;
     }
     tb_shutdown();
 }
@@ -191,8 +195,8 @@ void
 print_error()
 {
     switch (g_last_errno) {
-    case ERR_DRAW_DIGIT:
-        printf("[ERROR] Draw digit error\n");
+    case ERR_DRAW_SYMBOL:
+        printf("[ERROR] Draw symbol error\n");
         break;
     case ERR_TERMINAL_SIZE:
         printf("[ERROR] Bad terminal size\n");
