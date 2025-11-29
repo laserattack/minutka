@@ -2,13 +2,12 @@
 
 #define TB_IMPL
 #include "termbox2.h"
+#include "fonts.h"
 
 #define FPS                  24
 #define MS_PER_FRAME         1000 / FPS
 #define MIN_TERMINAL_WIDTH   10
 #define MIN_TERMINAL_HEIGHT  10
-#define BASE_FONT_WIDTH      3
-#define BASE_FONT_HEIGHT     5
 
 /* types */
 
@@ -22,28 +21,18 @@ typedef struct {
 } Pos;
 
 typedef struct {
+    int width, height;
+    void* data;
+} Font;
+
+typedef struct {
     Pos center;
-    int font_width, font_height;
+    Font font;
     uintattr_t fg, bg;
     char time[9]; /* HH:MM:SS */
 } State;
 
 /* global vars */
-
-const char
-g_font[256][BASE_FONT_HEIGHT][BASE_FONT_WIDTH+1] = {
-    ['0'] = { "###", "# #", "# #", "# #", "###" }, // 0
-    ['1'] = { " # ", "## ", " # ", " # ", "###" }, // 1
-    ['2'] = { "###", "  #", "###", "#  ", "###" }, // 2
-    ['3'] = { "###", "  #", "## ", "  #", "###" }, // 3
-    ['4'] = { "# #", "# #", "###", "  #", "  #" }, // 4
-    ['5'] = { "###", "#  ", "###", "  #", "###" }, // 5
-    ['6'] = { "###", "#  ", "###", "# #", "###" }, // 6
-    ['7'] = { "###", "  #", "  #", "  #", "  #" }, // 7
-    ['8'] = { "###", "# #", "###", "# #", "###" }, // 8
-    ['9'] = { "###", "# #", "###", "  #", "###" }, // 9
-    [':'] = { "   ", " # ", "   ", " # ", "   " }, // :
-};
 
 State
 g_state;
@@ -80,14 +69,30 @@ set_current_time(char *buffer)
 int
 draw_symbol(int code, Pos pos, uintattr_t fg, uintattr_t bg)
 {
-    int dx, dy;
+    int dx, dy, font_h, font_w;
+
+    font_h = g_state.font.height;
+    font_w = g_state.font.width;
 
     if (code < 0 || code > 255)
         return g_last_errno = ERR_DRAW_SYMBOL;
-    for (dy = 0; dy < g_state.font_height; dy++) {
-        for (dx = 0; dx < g_state.font_width; dx++) {
-            if (g_font[code][dy][dx] == '#') {
-                tb_set_cell(pos.x+dx, pos.y+dy, ' ', fg, bg);
+    for (dy = 0; dy < font_h; dy++) {
+        for (dx = 0; dx < font_w; dx++) {
+            switch (font_w) {
+            case SMALL_FONT_WIDTH: {
+                    SmallFontChar *font_data = (SmallFontChar *)g_state.font.data;
+                    if (font_data[code][dy][dx] == '#') {
+                        tb_set_cell(pos.x + dx, pos.y + dy, ' ', fg, bg);
+                    }
+                    break;
+                }
+            case LARGE_FONT_WIDTH: {
+                    LargeFontChar *font_data = (LargeFontChar *)g_state.font.data;
+                    if (font_data[code][dy][dx] == '#') {
+                        tb_set_cell(pos.x + dx, pos.y + dy, ' ', fg, bg);
+                    }
+                    break;
+                }
             }
         }
     }
@@ -104,11 +109,11 @@ draw_screen()
     tb_clear();
 
     symbols_count = sizeof(g_state.time)-1;
-    step_x = g_state.font_width+1;
+    step_x = g_state.font.width+1;
     total_width = step_x*symbols_count-1;
 
     start_x = g_state.center.x-total_width/2;
-    start_y = g_state.center.y-g_state.font_height/2;
+    start_y = g_state.center.y-g_state.font.height/2;
 
     for (i = 0; i < symbols_count; ++i) {
         Pos pos;
@@ -132,10 +137,23 @@ draw_screen()
 void
 update_sizes()
 {
-    g_state.center.x = tb_width() / 2;
-    g_state.center.y = tb_height() / 2;
-    g_state.font_width = 3;
-    g_state.font_height = 5;
+    int width, height;
+
+    width = tb_width();
+    height = tb_height();
+
+    g_state.center.x = width / 2;
+    g_state.center.y = height / 2;
+
+    if (width < 110) {
+        g_state.font.data = (void*)g_font_small;
+        g_state.font.width = SMALL_FONT_WIDTH;
+        g_state.font.height = SMALL_FONT_HEIGHT;
+    } else {
+        g_state.font.data = (void*)g_font_large;
+        g_state.font.width = LARGE_FONT_WIDTH;
+        g_state.font.height = LARGE_FONT_HEIGHT;
+    }
 }
 
 int
