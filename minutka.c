@@ -32,6 +32,30 @@ typedef struct {
     char time[9]; /* HH:MM:SS */
 } State;
 
+/* help funcs */
+
+void
+die(const char *errstr, ...)
+{
+    va_list ap;
+
+    va_start(ap, errstr);
+    vfprintf(stderr, errstr, ap);
+    va_end(ap);
+    exit(1);
+}
+
+void
+set_current_time(char *buf, size_t bufsize)
+{
+    time_t now;
+    struct tm *local;
+
+    now = time(NULL);
+    local = localtime(&now);
+    strftime(buf, bufsize, "%H:%M:%S", local);
+}
+
 /* global vars */
 
 State
@@ -41,17 +65,6 @@ int
 g_last_errno = 0;
 
 /* funcs */
-
-void
-die(const char *errstr, ...)
-{
-	va_list ap;
-
-	va_start(ap, errstr);
-	vfprintf(stderr, errstr, ap);
-	va_end(ap);
-	exit(1);
-}
 
 int
 check_terminal()
@@ -64,17 +77,6 @@ check_terminal()
         return g_last_errno = ERR_TERMINAL_SIZE;
 
     return 0;
-}
-
-void
-set_current_time(char *buffer)
-{
-    time_t now;
-    struct tm *local;
-
-    now = time(NULL);
-    local = localtime(&now);
-    strftime(buffer, 9, "%H:%M:%S", local);
 }
 
 /* Position is the upper-left corner of the symbol's bounding box */
@@ -173,6 +175,7 @@ int
 handle_event()
 {
     struct tb_event ev;
+
     tb_peek_event(&ev, MS_PER_FRAME);
 
     switch (ev.type) {
@@ -204,7 +207,7 @@ init_state()
         .fg = TEXT_COLOR,
         .bg = TEXT_COLOR,
     };
-    set_current_time(g_state.time);
+    set_current_time(g_state.time, 9);
     update_sizes();
 }
 
@@ -214,7 +217,7 @@ main_loop()
     tb_init();
     init_state();
     while (1) {
-        set_current_time(g_state.time);
+        set_current_time(g_state.time, 9);
         if (draw_screen() < 0) break;
         if (handle_event() <= 0) break;
         if (check_terminal() < 0) break;
