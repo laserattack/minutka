@@ -35,37 +35,14 @@ typedef struct {
 /* help funcs */
 
 void
-err(const char *errstr, ...)
-{
-    va_list ap;
-
-    va_start(ap, errstr);
-    fprintf(stderr, "[ERROR] ");
-    vfprintf(stderr, errstr, ap);
-    va_end(ap);
-}
-
-void
 die(const char *errstr, ...)
 {
     va_list ap;
 
     va_start(ap, errstr);
-    fprintf(stderr, "[ERROR] ");
     vfprintf(stderr, errstr, ap);
     va_end(ap);
     exit(1);
-}
-
-void
-info(const char *str, ...)
-{
-    va_list ap;
-
-    va_start(ap, str);
-    fprintf(stdout, "[INFO] ");
-    vfprintf(stdout, str, ap);
-    va_end(ap);
 }
 
 void
@@ -234,7 +211,7 @@ void
 init_state()
 {
     if (!(g_state = (State *)malloc(sizeof(State))))
-        die("allocation error\n");
+        die("[ERROR] init state allocation error\n");
     g_state->font = (Font){
         .fg = TEXT_COLOR,
         .bg = TEXT_COLOR,
@@ -258,7 +235,7 @@ main_loop()
 
     /* cleanup */
     if (g_state) free(g_state);
-    info("Cleanup done\n");
+    printf("[INFO] Cleanup done\n");
 }
 
 void
@@ -266,17 +243,17 @@ handle_error()
 {
     switch (g_last_errno) {
     case ERR_DRAW_SYMBOL:
-        die("Draw symbol error\n");
+        die("[ERROR] Draw symbol error\n");
         break;
     case ERR_TERMINAL_SIZE:
-        die("Bad terminal size\n");
+        die("[ERROR] Bad terminal size\n");
         break;
     }
 }
 
 void
 usage() {
-    die("usage: %s [-h]\n", argv0);
+    die("[INFO] usage: %s [-h]\n", argv0);
 }
 
 int
@@ -287,7 +264,7 @@ main(int argc, char *argv[])
         usage();
         break;
     default:
-        err("unknown flag '%c'\n", ARGC());
+        printf("[ERROR] unknown flag '%c'\n", ARGC());
         usage();
         break;
     } ARGEND;
@@ -295,6 +272,6 @@ main(int argc, char *argv[])
     main_loop();
     handle_error();
 
-    info("bye bye!\n");
+    printf("[INFO] bye bye!\n");
     return 0;
 }
