@@ -1,6 +1,7 @@
 #include <time.h>
 
-char *argv0;
+char
+*argv0;
 
 #include "config.h" /* termbox included here */
 #include "fonts.h"
