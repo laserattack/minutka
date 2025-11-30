@@ -157,17 +157,27 @@ update_sizes()
     width = tb_width();
     height = tb_height();
 
-    g_state.center.x = width/2;
-    g_state.center.y = height/2;
+    g_state.center = (Pos){
+        .x = width/2,
+        .y = height/2,
+    };
 
     if (width < 110) {
-        g_state.font.data = (void*)g_font_small;
-        g_state.font.width = SMALL_FONT_WIDTH;
-        g_state.font.height = SMALL_FONT_HEIGHT;
+        g_state.font = (Font){
+            .data = (void *)g_font_small,
+            .width = SMALL_FONT_WIDTH,
+            .height = SMALL_FONT_HEIGHT,
+            .fg = g_state.font.fg,
+            .bg = g_state.font.bg,
+        };
     } else {
-        g_state.font.data = (void*)g_font_large;
-        g_state.font.width = LARGE_FONT_WIDTH;
-        g_state.font.height = LARGE_FONT_HEIGHT;
+        g_state.font = (Font){
+            .data = (void *)g_font_large,
+            .width = LARGE_FONT_WIDTH,
+            .height = LARGE_FONT_HEIGHT,
+            .fg = g_state.font.fg,
+            .bg = g_state.font.bg,
+        };
     }
 }
 
