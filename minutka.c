@@ -269,6 +269,11 @@ main(int argc, char *argv[])
         break;
     } ARGEND;
 
+    if (argc != 0) {
+        printf("[ERROR] Invalid args count: %d\n", argc);
+        usage();
+    }
+
     main_loop();
     handle_error();
 
