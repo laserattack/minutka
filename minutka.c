@@ -83,16 +83,13 @@ check_terminal()
 int
 draw_symbol(int code, Pos pos, Font font)
 {
-    int dx, dy, font_h, font_w;
-
-    font_h = font.height;
-    font_w = font.width;
+    int dx, dy;
 
     if (code < 0 || code > 255)
         return g_last_errno = ERR_DRAW_SYMBOL;
-    for (dy = 0; dy < font_h; dy++) {
-        for (dx = 0; dx < font_w; dx++) {
-            switch (font_w) {
+    for (dy = 0; dy < font.height; dy++) {
+        for (dx = 0; dx < font.width; dx++) {
+            switch (font.width) {
             case SMALL_FONT_WIDTH: {
                     SmallFontChar *font_data = (SmallFontChar *)font.data;
                     if (font_data[code][dy][dx] == '#') {
