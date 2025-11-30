@@ -1,4 +1,5 @@
 #include <time.h>
+#include <ctype.h>
 
 char
 *argv0;
@@ -253,7 +254,7 @@ handle_error()
 
 void
 usage() {
-    die("[INFO] usage: %s [-h]\n", argv0);
+    die("[INFO] usage: %s [-h] [-c] [-t sec]\n", argv0);
 }
 
 int
@@ -263,6 +264,31 @@ main(int argc, char *argv[])
     case 'h':
         usage();
         break;
+    case 'c':
+        printf("[INFO] start in clock mode\n");
+        break;
+    case 't':
+        char *time, *c;
+
+        time = ARGF();
+        if (time == NULL) {
+            printf("[ERROR] required argument after flag '%c'\n", ARGC());
+            usage();
+        }
+        if (strlen(time) > 9) {
+            printf("[ERROR] arg after flag '%c'"
+                    " too big (>9 symbols)\n", ARGC());
+            usage();
+        }
+        for (c=time;*c;c++) {
+            if (!isdigit(*c)) {
+                printf("[ERROR] arg after flag '%c' must be number"
+                        ", but got '%c'\n", ARGC(), *c);
+                usage();
+            }
+        }
+        printf("[INFO] start in timer mode: %s sec\n", time);
+        break;
     default:
         printf("[ERROR] unknown flag '%c'\n", ARGC());
         usage();
@@ -270,7 +296,7 @@ main(int argc, char *argv[])
     } ARGEND;
 
     if (argc != 0) {
-        printf("[ERROR] Invalid args count: %d\n", argc);
+        printf("[ERROR] invalid args count: %d\n", argc);
         usage();
     }
 
