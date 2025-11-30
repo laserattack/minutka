@@ -1,13 +1,7 @@
 #include <time.h>
 
-#define TB_IMPL
-#include "termbox2.h"
 #include "fonts.h"
-
-#define FPS                  24
-#define MS_PER_FRAME         1000 / FPS
-#define MIN_TERMINAL_WIDTH   10
-#define MIN_TERMINAL_HEIGHT  10
+#include "config.h"
 
 /* types */
 
@@ -187,8 +181,8 @@ void
 init_state()
 {
     g_state.font = (Font){
-        .fg = TB_BLUE,
-        .bg = TB_BLUE,
+        .fg = TEXT_COLOR,
+        .bg = TEXT_COLOR,
     };
     set_current_time(g_state.time);
     update_sizes();

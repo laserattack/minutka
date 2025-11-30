@@ -1,5 +1,5 @@
-#ifndef FONT_H
-#define FONT_H
+#ifndef FONTS_H
+#define FONTS_H
 
 #define SMALL_FONT_WIDTH  3
 #define SMALL_FONT_HEIGHT 5
