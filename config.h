@@ -21,8 +21,4 @@
 #define MIN_TERMINAL_WIDTH   10
 #define MIN_TERMINAL_HEIGHT  10
 
-/* DONT CHANGE ANYTHING BELOW */
-
-#define MS_PER_FRAME         1000 / FPS
-
 #endif

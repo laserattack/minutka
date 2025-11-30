@@ -3,6 +3,8 @@
 #include "fonts.h"
 #include "config.h" /* termbox included here */
 
+#define MS_PER_FRAME 1000 / FPS
+
 /* types */
 
 enum errors {
