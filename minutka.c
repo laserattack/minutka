@@ -280,7 +280,7 @@ main(int argc, char *argv[])
                     " too big (>9 symbols)\n", ARGC());
             usage();
         }
-        for (c=time;*c;c++) {
+        for (c = time; *c; c++) {
             if (!isdigit(*c)) {
                 printf("[ERROR] arg after flag '%c' must be number"
                         ", but got '%c'\n", ARGC(), *c);
