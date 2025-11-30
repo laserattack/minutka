@@ -233,14 +233,14 @@ main_loop()
 }
 
 void
-print_error()
+handle_error()
 {
     switch (g_last_errno) {
     case ERR_DRAW_SYMBOL:
-        printf("[ERROR] Draw symbol error\n");
+        die("[ERROR] Draw symbol error\n");
         break;
     case ERR_TERMINAL_SIZE:
-        printf("[ERROR] Bad terminal size\n");
+        die("[ERROR] Bad terminal size\n");
         break;
     }
 }
@@ -264,7 +264,7 @@ main(int argc, char *argv[])
     } ARGEND;
 
     main_loop();
-    print_error();
+    handle_error();
 
     printf("bye bye!\n");
     return 0;
