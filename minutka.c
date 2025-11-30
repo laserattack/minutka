@@ -1,7 +1,7 @@
 #include <time.h>
 
 #include "fonts.h"
-#include "config.h"
+#include "config.h" /* termbox included here */
 
 /* types */
 
