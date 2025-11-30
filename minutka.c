@@ -81,28 +81,28 @@ check_terminal()
 
 /* Position is the upper-left corner of the symbol's bounding box */
 int
-draw_symbol(int code, Pos pos, Font font)
+draw_symbol(int code, Pos *pos, Font *font)
 {
     int dx, dy;
 
     if (code < 0 || code > 255)
         return g_last_errno = ERR_DRAW_SYMBOL;
-    for (dy = 0; dy < font.height; dy++) {
-        for (dx = 0; dx < font.width; dx++) {
-            switch (font.width) {
+    for (dy = 0; dy < font->height; dy++) {
+        for (dx = 0; dx < font->width; dx++) {
+            switch (font->width) {
             case SMALL_FONT_WIDTH: {
-                    SmallFontChar *font_data = (SmallFontChar *)font.data;
+                    SmallFontChar *font_data = (SmallFontChar *)font->data;
                     if (font_data[code][dy][dx] == '#') {
-                        tb_set_cell(pos.x+dx, pos.y+dy, ' ',
-                                font.fg, font.bg);
+                        tb_set_cell(pos->x+dx, pos->y+dy, ' ',
+                                font->fg, font->bg);
                     }
                     break;
                 }
             case LARGE_FONT_WIDTH: {
-                    LargeFontChar *font_data = (LargeFontChar *)font.data;
+                    LargeFontChar *font_data = (LargeFontChar *)font->data;
                     if (font_data[code][dy][dx] == '#') {
-                        tb_set_cell(pos.x+dx, pos.y+dy, ' ',
-                                font.fg, font.bg);
+                        tb_set_cell(pos->x+dx, pos->y+dy, ' ',
+                                font->fg, font->bg);
                     }
                     break;
                 }
@@ -136,7 +136,7 @@ draw_screen()
             .y = start_y,
         };
 
-        if (draw_symbol(g_state->time[i], pos, g_state->font) < 0)
+        if (draw_symbol(g_state->time[i], &pos, &g_state->font) < 0)
             return g_last_errno;
     }
 
