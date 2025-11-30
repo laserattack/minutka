@@ -9,6 +9,17 @@ char
 
 #define MS_PER_FRAME 1000 / FPS
 
+#define ERR_FUNCTION(name, should_exit) \
+void name(const char *errstr, ...) \
+{ \
+    va_list ap; \
+    va_start(ap, errstr); \
+    fprintf(stderr, "[ERROR] "); \
+    vfprintf(stderr, errstr, ap); \
+    va_end(ap); \
+    if (should_exit) exit(1); \
+}
+
 /* types */
 
 enum errors {
@@ -34,15 +45,18 @@ typedef struct {
 
 /* help funcs */
 
+ERR_FUNCTION(err, 0)
+ERR_FUNCTION(die, 1)
+
 void
-die(const char *errstr, ...)
+info(const char *str, ...)
 {
     va_list ap;
 
-    va_start(ap, errstr);
-    vfprintf(stderr, errstr, ap);
+    va_start(ap, str);
+    fprintf(stdout, "[INFO] ");
+    vfprintf(stdout, str, ap);
     va_end(ap);
-    exit(1);
 }
 
 void
@@ -59,7 +73,7 @@ set_current_time(char *buf, size_t bufsize)
 /* global vars */
 
 State
-g_state;
+*g_state;
 
 int
 g_last_errno = 0;
@@ -121,12 +135,12 @@ draw_screen()
     /* clear internal buffer */
     tb_clear();
 
-    symbols_count = sizeof(g_state.time)-1;
-    step_x = g_state.font.width+1;
+    symbols_count = sizeof(g_state->time)-1;
+    step_x = g_state->font.width+1;
     total_width = step_x*symbols_count-1;
 
-    start_x = g_state.center.x-total_width/2;
-    start_y = g_state.center.y-g_state.font.height/2;
+    start_x = g_state->center.x-total_width/2;
+    start_y = g_state->center.y-g_state->font.height/2;
 
     for (i = 0; i < symbols_count; ++i) {
         Pos pos;
@@ -136,7 +150,7 @@ draw_screen()
             .y = start_y,
         };
 
-        if (draw_symbol(g_state.time[i], pos, g_state.font) < 0)
+        if (draw_symbol(g_state->time[i], pos, g_state->font) < 0)
             return g_last_errno;
     }
 
@@ -154,26 +168,26 @@ update_sizes()
     width = tb_width();
     height = tb_height();
 
-    g_state.center = (Pos){
+    g_state->center = (Pos){
         .x = width/2,
         .y = height/2,
     };
 
     if (width < 110) {
-        g_state.font = (Font){
+        g_state->font = (Font){
             .data = (void *)g_font_small,
             .width = SMALL_FONT_WIDTH,
             .height = SMALL_FONT_HEIGHT,
-            .fg = g_state.font.fg,
-            .bg = g_state.font.bg,
+            .fg = g_state->font.fg,
+            .bg = g_state->font.bg,
         };
     } else {
-        g_state.font = (Font){
+        g_state->font = (Font){
             .data = (void *)g_font_large,
             .width = LARGE_FONT_WIDTH,
             .height = LARGE_FONT_HEIGHT,
-            .fg = g_state.font.fg,
-            .bg = g_state.font.bg,
+            .fg = g_state->font.fg,
+            .bg = g_state->font.bg,
         };
     }
 }
@@ -210,11 +224,13 @@ handle_event()
 void
 init_state()
 {
-    g_state.font = (Font){
+    if (!(g_state = (State *)malloc(sizeof(State))))
+        die("allocation error\n");
+    g_state->font = (Font){
         .fg = TEXT_COLOR,
         .bg = TEXT_COLOR,
     };
-    set_current_time(g_state.time, 9);
+    set_current_time(g_state->time, 9);
     update_sizes();
 }
 
@@ -224,12 +240,16 @@ main_loop()
     tb_init();
     init_state();
     while (1) {
-        set_current_time(g_state.time, 9);
+        set_current_time(g_state->time, 9);
         if (draw_screen() < 0) break;
         if (handle_event() <= 0) break;
         if (check_terminal() < 0) break;
     }
     tb_shutdown();
+
+    /* cleanup */
+    if (g_state) free(g_state);
+    info("Cleanup done\n");
 }
 
 void
@@ -237,10 +257,10 @@ handle_error()
 {
     switch (g_last_errno) {
     case ERR_DRAW_SYMBOL:
-        die("[ERROR] Draw symbol error\n");
+        die("Draw symbol error\n");
         break;
     case ERR_TERMINAL_SIZE:
-        die("[ERROR] Bad terminal size\n");
+        die("Bad terminal size\n");
         break;
     }
 }
@@ -258,7 +278,7 @@ main(int argc, char *argv[])
         usage();
         break;
     default:
-        printf("unknown flag '%c'\n", ARGC());
+        err("unknown flag '%c'\n", ARGC());
         usage();
         break;
     } ARGEND;
@@ -266,6 +286,6 @@ main(int argc, char *argv[])
     main_loop();
     handle_error();
 
-    printf("bye bye!\n");
+    info("bye bye!\n");
     return 0;
 }
