@@ -1,7 +1,10 @@
 #include <time.h>
 
-#include "fonts.h"
+char *argv0;
+
 #include "config.h" /* termbox included here */
+#include "fonts.h"
+#include "arg.h"
 
 #define MS_PER_FRAME 1000 / FPS
 
@@ -37,6 +40,17 @@ int
 g_last_errno = 0;
 
 /* funcs */
+
+void
+die(const char *errstr, ...)
+{
+	va_list ap;
+
+	va_start(ap, errstr);
+	vfprintf(stderr, errstr, ap);
+	va_end(ap);
+	exit(1);
+}
 
 int
 check_terminal()
@@ -220,11 +234,27 @@ print_error()
     }
 }
 
+void
+usage() {
+    die("usage: %s [-h]\n", argv0);
+}
+
 int
-main()
+main(int argc, char *argv[])
 {
+    ARGBEGIN {
+    case 'h':
+        usage();
+        break;
+    default:
+        printf("unknown flag '%c'\n", ARGC());
+        usage();
+        break;
+    } ARGEND;
+
     main_loop();
     print_error();
+
     printf("bye bye!\n");
     return 0;
 }
