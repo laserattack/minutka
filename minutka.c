@@ -9,17 +9,6 @@ char
 
 #define MS_PER_FRAME 1000 / FPS
 
-#define ERR_FUNCTION(name, should_exit) \
-void name(const char *errstr, ...) \
-{ \
-    va_list ap; \
-    va_start(ap, errstr); \
-    fprintf(stderr, "[ERROR] "); \
-    vfprintf(stderr, errstr, ap); \
-    va_end(ap); \
-    if (should_exit) exit(1); \
-}
-
 /* types */
 
 enum errors {
@@ -45,8 +34,28 @@ typedef struct {
 
 /* help funcs */
 
-ERR_FUNCTION(err, 0)
-ERR_FUNCTION(die, 1)
+void
+err(const char *errstr, ...)
+{
+    va_list ap;
+
+    va_start(ap, errstr);
+    fprintf(stderr, "[ERROR] ");
+    vfprintf(stderr, errstr, ap);
+    va_end(ap);
+}
+
+void
+die(const char *errstr, ...)
+{
+    va_list ap;
+
+    va_start(ap, errstr);
+    fprintf(stderr, "[ERROR] ");
+    vfprintf(stderr, errstr, ap);
+    va_end(ap);
+    exit(1);
+}
 
 void
 info(const char *str, ...)
