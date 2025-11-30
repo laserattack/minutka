@@ -260,16 +260,29 @@ usage() {
 int
 main(int argc, char *argv[])
 {
+    char startmode = 0;
+
     ARGBEGIN {
     case 'h':
         usage();
         break;
     case 'c':
-        printf("[INFO] start in clock mode\n");
+        if (startmode) {
+            printf("[ERROR] its not possible to run in"
+                    " more than one mode\n");
+            usage();
+        }
+        startmode = ARGC();
+        printf("[INFO] starting in clock mode...\n");
         break;
     case 't':
         char *time, *c;
-
+        if (startmode) {
+            printf("[ERROR] its not possible to run in"
+                    " more than one mode\n");
+            usage();
+        }
+        startmode = ARGC();
         time = ARGF();
         if (time == NULL) {
             printf("[ERROR] required argument after flag '%c'\n", ARGC());
@@ -283,11 +296,11 @@ main(int argc, char *argv[])
         for (c = time; *c; c++) {
             if (!isdigit(*c)) {
                 printf("[ERROR] arg after flag '%c' must be number"
-                        ", but got '%c'\n", ARGC(), *c);
+                        ", but got '%s'\n", ARGC(), time);
                 usage();
             }
         }
-        printf("[INFO] start in timer mode: %s sec\n", time);
+        printf("[INFO] starting in timer mode (%s sec)...\n", time);
         break;
     default:
         printf("[ERROR] unknown flag '%c'\n", ARGC());
