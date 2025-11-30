@@ -64,7 +64,7 @@ g_state;
 int
 g_last_errno = 0;
 
-/* funcs */
+/* main logic */
 
 int
 check_terminal()
