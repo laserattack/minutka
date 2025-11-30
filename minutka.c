@@ -235,7 +235,7 @@ main_loop()
 
     /* cleanup */
     if (g_state) free(g_state);
-    printf("[INFO] Cleanup done\n");
+    printf("[INFO] cleanup done\n");
 }
 
 void
@@ -243,10 +243,10 @@ handle_error()
 {
     switch (g_last_errno) {
     case ERR_DRAW_SYMBOL:
-        die("[ERROR] Draw symbol error\n");
+        die("[ERROR] draw symbol error\n");
         break;
     case ERR_TERMINAL_SIZE:
-        die("[ERROR] Bad terminal size\n");
+        die("[ERROR] bad terminal size\n");
         break;
     }
 }
