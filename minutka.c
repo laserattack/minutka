@@ -22,13 +22,13 @@ typedef struct {
 
 typedef struct {
     int width, height;
+    uintattr_t fg, bg;
     void* data;
 } Font;
 
 typedef struct {
     Pos center;
     Font font;
-    uintattr_t fg, bg;
     char time[9]; /* HH:MM:SS */
 } State;
 
@@ -67,12 +67,12 @@ set_current_time(char *buffer)
 }
 
 int
-draw_symbol(int code, Pos pos, uintattr_t fg, uintattr_t bg)
+draw_symbol(int code, Pos pos, Font font)
 {
     int dx, dy, font_h, font_w;
 
-    font_h = g_state.font.height;
-    font_w = g_state.font.width;
+    font_h = font.height;
+    font_w = font.width;
 
     if (code < 0 || code > 255)
         return g_last_errno = ERR_DRAW_SYMBOL;
@@ -80,16 +80,16 @@ draw_symbol(int code, Pos pos, uintattr_t fg, uintattr_t bg)
         for (dx = 0; dx < font_w; dx++) {
             switch (font_w) {
             case SMALL_FONT_WIDTH: {
-                    SmallFontChar *font_data = (SmallFontChar *)g_state.font.data;
+                    SmallFontChar *font_data = (SmallFontChar *)font.data;
                     if (font_data[code][dy][dx] == '#') {
-                        tb_set_cell(pos.x + dx, pos.y + dy, ' ', fg, bg);
+                        tb_set_cell(pos.x+dx, pos.y+dy, ' ', font.fg, font.bg);
                     }
                     break;
                 }
             case LARGE_FONT_WIDTH: {
-                    LargeFontChar *font_data = (LargeFontChar *)g_state.font.data;
+                    LargeFontChar *font_data = (LargeFontChar *)font.data;
                     if (font_data[code][dy][dx] == '#') {
-                        tb_set_cell(pos.x + dx, pos.y + dy, ' ', fg, bg);
+                        tb_set_cell(pos.x+dx, pos.y+dy, ' ', font.fg, font.bg);
                     }
                     break;
                 }
@@ -123,8 +123,7 @@ draw_screen()
             .y = start_y,
         };
 
-        if (draw_symbol(g_state.time[i],
-                    pos, g_state.fg, g_state.bg) < 0)
+        if (draw_symbol(g_state.time[i], pos, g_state.font) < 0)
             return g_last_errno;
     }
 
@@ -142,8 +141,8 @@ update_sizes()
     width = tb_width();
     height = tb_height();
 
-    g_state.center.x = width / 2;
-    g_state.center.y = height / 2;
+    g_state.center.x = width/2;
+    g_state.center.y = height/2;
 
     if (width < 110) {
         g_state.font.data = (void*)g_font_small;
@@ -187,7 +186,7 @@ handle_event()
 void
 init_state()
 {
-    g_state = (State){
+    g_state.font = (Font){
         .fg = TB_BLUE,
         .bg = TB_BLUE,
     };
