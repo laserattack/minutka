@@ -159,7 +159,7 @@ update_sizes()
         .y = height/2,
     };
 
-    if (width < 110) {
+    if (width < FONT_CHANGE_WIDTH) {
         g_state->font = (Font){
             .data = (void *)g_font_small,
             .width = SMALL_FONT_WIDTH,

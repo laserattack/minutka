@@ -18,6 +18,7 @@
 #define TEXT_COLOR           TB_BLUE
 
 #define FPS                  24
+#define FONT_CHANGE_WIDTH    110
 #define MIN_TERMINAL_WIDTH   10
 #define MIN_TERMINAL_HEIGHT  10
 
