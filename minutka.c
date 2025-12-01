@@ -22,7 +22,7 @@ typedef struct {
 } Pos;
 
 typedef struct {
-    int width, height;
+    int w, h;
     uintattr_t fg, bg;
     void* data;
 } Font;
@@ -70,11 +70,12 @@ g_last_errno = 0;
 int
 check_terminal()
 {
-    int width, height;
+    int w, h;
 
-    width = tb_width();
-    height = tb_height();
-    if (width < MIN_TERMINAL_WIDTH || height < MIN_TERMINAL_HEIGHT)
+    w = tb_width();
+    h = tb_height();
+
+    if (w < MIN_TERMINAL_WIDTH || h < MIN_TERMINAL_HEIGHT)
         return g_last_errno = ERR_TERMINAL_SIZE;
 
     return 0;
@@ -88,23 +89,23 @@ draw_symbol(int code, Pos *pos, Font *font)
 
     if (code < 0 || code > 255)
         return g_last_errno = ERR_DRAW_SYMBOL;
-    for (dy = 0; dy < font->height; dy++) {
-        for (dx = 0; dx < font->width; dx++) {
-            switch (font->width) {
+    for (dy = 0; dy < font->h; dy++) {
+        for (dx = 0; dx < font->w; dx++) {
+            switch (font->w) {
             case SMALL_FONT_WIDTH: {
-                    SmallFontChar *font_data;
+                    SmallFontChar *fontdata;
 
-                    font_data = (SmallFontChar *)font->data;
-                    if (font_data[code][dy][dx] == '#')
+                    fontdata = (SmallFontChar *)font->data;
+                    if (fontdata[code][dy][dx] == '#')
                         tb_set_cell(pos->x+dx, pos->y+dy, ' ',
                                 font->fg, font->bg);
                     break;
                 }
             case LARGE_FONT_WIDTH: {
-                    LargeFontChar *font_data;
+                    LargeFontChar *fontdata;
 
-                    font_data = (LargeFontChar *)font->data;
-                    if (font_data[code][dy][dx] == '#')
+                    fontdata = (LargeFontChar *)font->data;
+                    if (fontdata[code][dy][dx] == '#')
                         tb_set_cell(pos->x+dx, pos->y+dy, ' ',
                                 font->fg, font->bg);
                     break;
@@ -119,22 +120,22 @@ draw_symbol(int code, Pos *pos, Font *font)
 int
 draw_screen()
 {
-    int i, step_x, start_x, start_y, symbols_count, total_width;
+    int i, textw, stepx, startx, starty, symcount;
 
     /* clear internal buffer */
     tb_clear();
 
-    symbols_count = sizeof(g_state->time)-1;
-    step_x = g_state->font.width+1;
-    total_width = step_x*symbols_count-1;
+    symcount = sizeof(g_state->time)-1;
+    stepx = g_state->font.w+1;
+    textw = stepx*symcount-1;
 
-    start_x = g_state->center.x-total_width/2;
-    start_y = g_state->center.y-g_state->font.height/2;
+    startx = g_state->center.x-textw/2;
+    starty = g_state->center.y-g_state->font.h/2;
 
-    for (i = 0; i < symbols_count; ++i) {
+    for (i = 0; i < symcount; ++i) {
         Pos pos;
 
-        pos = (Pos){ .x = start_x+i*step_x, .y = start_y };
+        pos = (Pos){ .x = startx+i*stepx, .y = starty };
         if (draw_symbol(g_state->time[i], &pos, &g_state->font) < 0)
             return g_last_errno;
     }
@@ -148,29 +149,25 @@ draw_screen()
 void
 update_sizes()
 {
-    int width, height;
+    int w, h;
 
-    width = tb_width();
-    height = tb_height();
+    w = tb_width();
+    h = tb_height();
+    g_state->center = (Pos){ .x = w/2, .y = h/2 };
 
-    g_state->center = (Pos){
-        .x = width/2,
-        .y = height/2,
-    };
-
-    if (width < FONT_CHANGE_WIDTH)
+    if (w < FONT_CHANGE_WIDTH)
         g_state->font = (Font){
             .data = (void *)g_font_small,
-            .width = SMALL_FONT_WIDTH,
-            .height = SMALL_FONT_HEIGHT,
+            .w = SMALL_FONT_WIDTH,
+            .h = SMALL_FONT_HEIGHT,
             .fg = g_state->font.fg,
             .bg = g_state->font.bg,
         };
     else
         g_state->font = (Font){
             .data = (void *)g_font_large,
-            .width = LARGE_FONT_WIDTH,
-            .height = LARGE_FONT_HEIGHT,
+            .w = LARGE_FONT_WIDTH,
+            .h = LARGE_FONT_HEIGHT,
             .fg = g_state->font.fg,
             .bg = g_state->font.bg,
         };
@@ -210,10 +207,8 @@ init_state()
 {
     if (!(g_state = (State *)malloc(sizeof(State))))
         die("[ERROR] init state allocation error\n");
-    g_state->font = (Font){
-        .fg = TEXT_COLOR,
-        .bg = TEXT_COLOR,
-    };
+
+    g_state->font = (Font){ .fg = TEXT_COLOR, .bg = TEXT_COLOR };
     set_current_time(g_state->time, 9);
     update_sizes();
 }
