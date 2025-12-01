@@ -92,19 +92,21 @@ draw_symbol(int code, Pos *pos, Font *font)
         for (dx = 0; dx < font->width; dx++) {
             switch (font->width) {
             case SMALL_FONT_WIDTH: {
-                    SmallFontChar *font_data = (SmallFontChar *)font->data;
-                    if (font_data[code][dy][dx] == '#') {
+                    SmallFontChar *font_data;
+
+                    font_data = (SmallFontChar *)font->data;
+                    if (font_data[code][dy][dx] == '#')
                         tb_set_cell(pos->x+dx, pos->y+dy, ' ',
                                 font->fg, font->bg);
-                    }
                     break;
                 }
             case LARGE_FONT_WIDTH: {
-                    LargeFontChar *font_data = (LargeFontChar *)font->data;
-                    if (font_data[code][dy][dx] == '#') {
+                    LargeFontChar *font_data;
+
+                    font_data = (LargeFontChar *)font->data;
+                    if (font_data[code][dy][dx] == '#')
                         tb_set_cell(pos->x+dx, pos->y+dy, ' ',
                                 font->fg, font->bg);
-                    }
                     break;
                 }
             }
@@ -132,11 +134,7 @@ draw_screen()
     for (i = 0; i < symbols_count; ++i) {
         Pos pos;
 
-        pos = (Pos){
-            .x = start_x+i*step_x,
-            .y = start_y,
-        };
-
+        pos = (Pos){ .x = start_x+i*step_x, .y = start_y };
         if (draw_symbol(g_state->time[i], &pos, &g_state->font) < 0)
             return g_last_errno;
     }
@@ -160,7 +158,7 @@ update_sizes()
         .y = height/2,
     };
 
-    if (width < FONT_CHANGE_WIDTH) {
+    if (width < FONT_CHANGE_WIDTH)
         g_state->font = (Font){
             .data = (void *)g_font_small,
             .width = SMALL_FONT_WIDTH,
@@ -168,7 +166,7 @@ update_sizes()
             .fg = g_state->font.fg,
             .bg = g_state->font.bg,
         };
-    } else {
+    else
         g_state->font = (Font){
             .data = (void *)g_font_large,
             .width = LARGE_FONT_WIDTH,
@@ -176,7 +174,6 @@ update_sizes()
             .fg = g_state->font.fg,
             .bg = g_state->font.bg,
         };
-    }
 }
 
 int
