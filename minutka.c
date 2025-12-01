@@ -268,14 +268,15 @@ main(int argc, char *argv[])
         printf("[INFO] starting in clock mode...\n");
         break;
     case 't':
-        char *time, *c;
+        char *c, *time;
+
         if (startmode) {
             printf("[ERROR] its not possible to run in"
                     " more than one mode\n");
             usage();
         }
-        startmode = ARGC();
         time = ARGF();
+        startmode = ARGC();
         if (time == NULL) {
             printf("[ERROR] required argument after flag '%c'\n", ARGC());
             usage();
