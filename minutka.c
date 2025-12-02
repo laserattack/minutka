@@ -29,6 +29,7 @@ typedef struct {
 
 typedef struct {
     char mode;
+    int autoexit; /* flag -e: exit when 00:00:00 reached in timer mode */
     Font font;
     Pos center;
     time_t curtime, starttime, endtime;
@@ -222,6 +223,9 @@ main_loop()
     update_sizes();
     while (1) {
         g_state->curtime = time(NULL);
+        if (g_state->mode == 't' && g_state->autoexit
+                && g_state->curtime >= g_state->endtime)
+            break;
         if (draw_screen() < 0) break;
         if (handle_event() <= 0) break;
         if (check_terminal() < 0) break;
@@ -244,18 +248,22 @@ print_error()
 
 void
 usage() {
-    die("[INFO] usage: %s [-h] [[-c] | [-t sec]]\n", argv0);
+    die("[INFO] usage: %s [-h] [-e] [[-c] | [-t sec]]\n", argv0);
 }
 
 int
 main(int argc, char *argv[])
 {
-    int startmode, timertime;
+    int autoexit, startmode, timertime;
 
-    //  TODO: -e for exit when 00:00:00 reached in timer mode
+    autoexit = AUTO_EXIT;
+
     ARGBEGIN {
     case 'h':
         usage();
+        break;
+    case 'e':
+        autoexit = 1;
         break;
     case 'c':
         if (startmode) {
@@ -315,6 +323,7 @@ main(int argc, char *argv[])
     if (!(g_state = (State *)malloc(sizeof(State))))
         die("[ERROR] init state allocation error\n");
     g_state->mode = startmode;
+    g_state->autoexit = autoexit;
     g_state->starttime = time(NULL);
     g_state->endtime = time(NULL) + timertime;
     g_state->font = (Font){ .fg = TEXT_COLOR, .bg = TEXT_COLOR };

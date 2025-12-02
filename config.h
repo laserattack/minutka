@@ -18,6 +18,11 @@ TB_WHITE
 #define TEXT_COLOR           TB_BLUE
 
 /*
+if 1 exit when 00:00:00 reached in timer mode
+*/
+#define AUTO_EXIT            0
+
+/*
 frames per second
 */
 #define FPS                  1
