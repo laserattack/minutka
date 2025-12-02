@@ -20,7 +20,7 @@ TB_WHITE
 /*
 frames per second
 */
-#define FPS                  24
+#define FPS                  1
 
 /*
 large font <-> small font change
