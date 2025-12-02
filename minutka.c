@@ -118,10 +118,10 @@ draw_screen()
     blink = 0;
     switch (g_state->mode) {
     case 'c':
-        struct tm *local;
+        struct tm *loctime;
 
-        local = localtime(&g_state->curtime);
-        strftime(text, sizeof(text), "%H:%M:%S", local);
+        loctime = localtime(&g_state->curtime);
+        strftime(text, sizeof(text), "%H:%M:%S", loctime);
         break;
     case 't':
         int secs, mins, hours;
@@ -206,12 +206,10 @@ handle_event()
 
     switch (ev.type) {
     case TB_EVENT_KEY:
-        /* firstly check basic symbols */
         switch (ev.ch) {
         case 'q':
             return 0;
         }
-        /* secondly check special keys */
         switch (ev.key) {
         case TB_KEY_ESC: /* FALLTHROUGH */
         case TB_KEY_CTRL_C:
@@ -227,7 +225,7 @@ handle_event()
 }
 
 void
-main_loop()
+tui_loop()
 {
     tb_init();
     update_sizes();
@@ -275,6 +273,7 @@ main(int argc, char *argv[])
     case 'e':
         autoexit = 1;
         break;
+    case 'C': /* FALLTHROUGH */
     case 'c':
         if (startmode) {
             printf("[ERROR] its not possible to run in"
@@ -283,6 +282,7 @@ main(int argc, char *argv[])
         }
         startmode = ARGC();
         break;
+    case 'T': /* FALLTHROUGH */
     case 't':
         char *c, *time;
 
@@ -329,20 +329,59 @@ main(int argc, char *argv[])
 
     printf("[INFO] starting in '%c' mode...\n", startmode);
 
-    /* init start state */
-    if (!(g_state = (State *)malloc(sizeof(State))))
-        die("[ERROR] init state allocation error\n");
-    g_state->mode = startmode;
-    g_state->autoexit = autoexit;
-    g_state->starttime = time(NULL);
-    g_state->endtime = time(NULL) + timertime;
-    g_state->font = (Font){ .fg = TEXT_COLOR, .bg = TEXT_COLOR };
+    switch (startmode) {
+    case 'c': /* FALLTHROUGH */
+    case 't':
+        /* init start state */
+        if (!(g_state = (State *)malloc(sizeof(State))))
+            die("[ERROR] init state allocation error\n");
+        g_state->mode = startmode;
+        g_state->autoexit = autoexit;
+        g_state->starttime = time(NULL);
+        g_state->endtime = time(NULL) + timertime;
+        g_state->font = (Font){ .fg = TEXT_COLOR, .bg = TEXT_COLOR };
 
-    main_loop();
+        tui_loop();
 
-    if (g_state) free(g_state);
-    printf("[INFO] cleanup done\n");
+        if (g_state) free(g_state);
+        printf("[INFO] cleanup done\n");
+        break;
+    case 'C': /* FALLTHROUGH */
+    case 'T':
+        char text[9];
+        time_t starttime, curtime;
 
+        starttime = time(NULL);
+        printf("[INFO] use SIGINT to exit\n");
+        while (1) {
+            curtime = time(NULL);
+
+            switch (startmode) {
+            case 'C':
+                struct tm *loctime;
+
+                loctime = localtime(&curtime);
+                strftime(text, sizeof(text), "%H:%M:%S", loctime);
+                break;
+            case 'T':
+                int secs, mins, hours;
+
+                secs = difftime(starttime + timertime, curtime);
+                if (secs <= 0) goto quit;
+                mins = secs/60;
+                hours = mins/60;
+                snprintf(text, sizeof(text),
+                        "%02d:%02d:%02d", hours%100, mins%60, secs%60);
+                break;
+            }
+            printf("\r%s ", text);
+            fflush(stdout);
+            sleep(1);
+        }
+        break;
+    }
+
+quit:
     print_error();
 
     return 0;
