@@ -236,7 +236,6 @@ main_loop()
         if (check_terminal() < 0) break;
     }
     tb_shutdown();
-
 }
 
 void
@@ -318,7 +317,7 @@ main(int argc, char *argv[])
         printf("[ERROR] start mode is not specified\n");
         usage();
     }
-    
+
     printf("[INFO] starting in '%c' mode...\n", startmode);
 
     /* init start state */
