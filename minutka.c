@@ -352,7 +352,7 @@ main(int argc, char *argv[])
         time_t starttime, curtime;
 
         starttime = time(NULL);
-        printf("[INFO] use SIGINT to exit\n");
+        tb_init();
         while (1) {
             curtime = time(NULL);
 
@@ -374,14 +374,31 @@ main(int argc, char *argv[])
                         "%02d:%02d:%02d", hours%100, mins%60, secs%60);
                 break;
             }
-            printf("\r%s ", text);
-            fflush(stdout);
-            sleep(1);
+            tb_clear();
+            tb_printf(0, 0, TEXT_COLOR, 0, text);
+            tb_present();
+
+            struct tb_event ev;
+            tb_peek_event(&ev, MS_PER_FRAME);
+            switch (ev.type) {
+            case TB_EVENT_KEY:
+                switch (ev.ch) {
+                case 'q':
+                    goto quit;
+                }
+                switch (ev.key) {
+                case TB_KEY_ESC: /* FALLTHROUGH */
+                case TB_KEY_CTRL_C:
+                    goto quit;
+                }
+                goto quit;
+            }
         }
+quit:
+        tb_shutdown();
         break;
     }
 
-quit:
     print_error();
 
     return 0;
