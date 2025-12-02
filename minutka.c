@@ -134,14 +134,14 @@ draw_screen()
         strftime(time, sizeof(time), "%H:%M:%S", local);
         break;
     case 't':
-        time_t secs, mins, hours;
+        int secs, mins, hours;
 
         secs = difftime(g_state->endtime, g_state->curtime);
         secs = (secs<0)? 0 : secs;
         mins = secs/60;
         hours = mins/60;
         snprintf(time, sizeof(time),
-                "%02ld:%02ld:%02ld", hours%100, mins%60, secs%60);
+                "%02d:%02d:%02d", hours%100, mins%60, secs%60);
         break;
     default:
         die("[ERROR] unknown mode");
