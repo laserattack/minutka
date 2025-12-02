@@ -3,7 +3,7 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -std=c99 -D_XOPEN_SOURCE=700 -D_DEFAULT_SOURCE
 TARGET = minutka
-SOURCES = minutka.c fonts.c
+SOURCES = minutka.c font.c
 OBJECTS = $(SOURCES:.c=.o)
 DEPS = $(SOURCES:.c=.d)
 

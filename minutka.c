@@ -5,7 +5,7 @@ char
 *argv0;
 
 #include "config.h" /* termbox included here */
-#include "fonts.h"
+#include "font.h"
 #include "arg.h"
 
 #define MS_PER_FRAME 1000 / FPS
@@ -246,7 +246,7 @@ handle_error()
 
 void
 usage() {
-    die("[INFO] usage: %s [-h] [-c] [-t sec]\n", argv0);
+    die("[INFO] usage: %s [-h] [[-c] | [-t sec]]\n", argv0);
 }
 
 int
@@ -265,7 +265,6 @@ main(int argc, char *argv[])
             usage();
         }
         startmode = ARGC();
-        printf("[INFO] starting in clock mode...\n");
         break;
     case 't':
         char *c, *time;
@@ -288,12 +287,11 @@ main(int argc, char *argv[])
         }
         for (c = time; *c; c++) {
             if (!isdigit(*c)) {
-                printf("[ERROR] arg after flag '%c' must be number"
+                printf("[ERROR] arg after flag '%c' must be an integer"
                         ", but got '%s'\n", ARGC(), time);
                 usage();
             }
         }
-        printf("[INFO] starting in timer mode (%s sec)...\n", time);
         break;
     default:
         printf("[ERROR] unknown flag '%c'\n", ARGC());
@@ -305,6 +303,8 @@ main(int argc, char *argv[])
         printf("[ERROR] invalid args count: %d\n", argc);
         usage();
     }
+
+    printf("[INFO] starting in '%c' mode...\n", startmode);
 
     main_loop();
     handle_error();
