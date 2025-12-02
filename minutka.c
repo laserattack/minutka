@@ -47,17 +47,6 @@ die(const char *errstr, ...)
     exit(1);
 }
 
-void
-set_current_time(char *buf, size_t bufsize)
-{
-    time_t now;
-    struct tm *local;
-
-    now = time(NULL);
-    local = localtime(&now);
-    strftime(buf, bufsize, "%H:%M:%S", local);
-}
-
 /* global vars */
 
 State
@@ -122,16 +111,14 @@ int
 draw_screen()
 {
     int i, textw, stepx, startx, starty, symcount;
-    struct tm *local;
-    char time[9];
-
-    /* clear internal buffer */
-    tb_clear();
+    char text[9];
 
     switch (g_state->mode) {
     case 'c':
+        struct tm *local;
+
         local = localtime(&g_state->curtime);
-        strftime(time, sizeof(time), "%H:%M:%S", local);
+        strftime(text, sizeof(text), "%H:%M:%S", local);
         break;
     case 't':
         int secs, mins, hours;
@@ -140,25 +127,29 @@ draw_screen()
         secs = (secs<0)? 0 : secs;
         mins = secs/60;
         hours = mins/60;
-        snprintf(time, sizeof(time),
+        snprintf(text, sizeof(text),
                 "%02d:%02d:%02d", hours%100, mins%60, secs%60);
         break;
     default:
         die("[ERROR] unknown mode");
     }
 
-    symcount = sizeof(time)-1;
+    symcount = sizeof(text)-1;
     stepx = g_state->font.w+1;
     textw = stepx*symcount-1;
 
     startx = g_state->center.x-textw/2;
     starty = g_state->center.y-g_state->font.h/2;
 
+    /* clear internal buffer */
+    tb_clear();
+
+    /* drawing */
     for (i = 0; i < symcount; ++i) {
         Pos pos;
 
         pos = (Pos){ .x = startx+i*stepx, .y = starty };
-        if (draw_symbol(time[i], &pos, &g_state->font) < 0)
+        if (draw_symbol(text[i], &pos, &g_state->font) < 0)
             return g_last_errno;
     }
 
