@@ -262,6 +262,7 @@ main(int argc, char *argv[])
 {
     int startmode, timertime;
 
+    //  TODO: -e for exit when 00:00:00 reached in timer mode
     ARGBEGIN {
     case 'h':
         usage();
