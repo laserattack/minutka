@@ -16,7 +16,7 @@ TB_CYAN
 TB_WHITE
 */
 #define TEXT_COLOR           TB_BLUE
-#define TEXT_BLINK_COLOR     TB_RED
+#define TEXT_BLINK_COLOR     TB_DEFAULT
 
 /*
 if 1 exit when 00:00:00 reached in timer mode
