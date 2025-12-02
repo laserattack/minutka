@@ -28,9 +28,10 @@ typedef struct {
 } Font;
 
 typedef struct {
-    Pos center;
+    char mode;
     Font font;
-    char time[9]; /* HH:MM:SS */
+    Pos center;
+    time_t curtime, starttime, endtime;
 } State;
 
 /* help funcs */
@@ -121,11 +122,32 @@ int
 draw_screen()
 {
     int i, textw, stepx, startx, starty, symcount;
+    struct tm *local;
+    char time[9];
 
     /* clear internal buffer */
     tb_clear();
 
-    symcount = sizeof(g_state->time)-1;
+    switch (g_state->mode) {
+    case 'c':
+        local = localtime(&g_state->curtime);
+        strftime(time, sizeof(time), "%H:%M:%S", local);
+        break;
+    case 't':
+        time_t secs, mins, hours;
+
+        secs = difftime(g_state->endtime, g_state->curtime);
+        secs = (secs<0)? 0 : secs;
+        mins = secs/60;
+        hours = mins/60;
+        snprintf(time, sizeof(time),
+                "%02ld:%02ld:%02ld", hours%100, mins%60, secs%60);
+        break;
+    default:
+        die("[ERROR] unknown mode");
+    }
+
+    symcount = sizeof(time)-1;
     stepx = g_state->font.w+1;
     textw = stepx*symcount-1;
 
@@ -136,7 +158,7 @@ draw_screen()
         Pos pos;
 
         pos = (Pos){ .x = startx+i*stepx, .y = starty };
-        if (draw_symbol(g_state->time[i], &pos, &g_state->font) < 0)
+        if (draw_symbol(time[i], &pos, &g_state->font) < 0)
             return g_last_errno;
     }
 
@@ -203,36 +225,22 @@ handle_event()
 }
 
 void
-init_state()
-{
-    if (!(g_state = (State *)malloc(sizeof(State))))
-        die("[ERROR] init state allocation error\n");
-
-    g_state->font = (Font){ .fg = TEXT_COLOR, .bg = TEXT_COLOR };
-    set_current_time(g_state->time, 9);
-    update_sizes();
-}
-
-void
 main_loop()
 {
     tb_init();
-    init_state();
+    update_sizes();
     while (1) {
-        set_current_time(g_state->time, 9);
+        g_state->curtime = time(NULL);
         if (draw_screen() < 0) break;
         if (handle_event() <= 0) break;
         if (check_terminal() < 0) break;
     }
     tb_shutdown();
 
-    /* cleanup */
-    if (g_state) free(g_state);
-    printf("[INFO] cleanup done\n");
 }
 
 void
-handle_error()
+print_error()
 {
     switch (g_last_errno) {
     case ERR_DRAW_SYMBOL:
@@ -252,7 +260,7 @@ usage() {
 int
 main(int argc, char *argv[])
 {
-    char startmode = 0;
+    int startmode, timertime;
 
     ARGBEGIN {
     case 'h':
@@ -292,6 +300,7 @@ main(int argc, char *argv[])
                 usage();
             }
         }
+        timertime = atoi(time);
         break;
     default:
         printf("[ERROR] unknown flag '%c'\n", ARGC());
@@ -304,11 +313,27 @@ main(int argc, char *argv[])
         usage();
     }
 
+    if (!startmode) {
+        printf("[ERROR] start mode is not specified\n");
+        usage();
+    }
+    
     printf("[INFO] starting in '%c' mode...\n", startmode);
 
-    main_loop();
-    handle_error();
+    /* init start state */
+    if (!(g_state = (State *)malloc(sizeof(State))))
+        die("[ERROR] init state allocation error\n");
+    g_state->mode = startmode;
+    g_state->starttime = time(NULL);
+    g_state->endtime = time(NULL) + timertime;
+    g_state->font = (Font){ .fg = TEXT_COLOR, .bg = TEXT_COLOR };
 
-    printf("[INFO] bye bye!\n");
+    main_loop();
+
+    if (g_state) free(g_state);
+    printf("[INFO] cleanup done\n");
+
+    print_error();
+
     return 0;
 }
