@@ -364,6 +364,7 @@ main(int argc, char *argv[])
                 strftime(text, sizeof(text), "%H:%M:%S", loctime);
                 break;
             case 'T':
+                /*  TODO: blink */
                 int secs, mins, hours;
 
                 secs = difftime(starttime + timertime, curtime);
