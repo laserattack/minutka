@@ -111,9 +111,11 @@ draw_symbol(int code, Pos *pos, Font *font)
 int
 draw_screen()
 {
-    int i, textw, stepx, startx, starty, symcount;
+    int i, blink, textw, stepx, startx, starty, symcount;
+    uintattr_t bgsave;
     char text[9];
 
+    blink = 0;
     switch (g_state->mode) {
     case 'c':
         struct tm *local;
@@ -125,7 +127,10 @@ draw_screen()
         int secs, mins, hours;
 
         secs = difftime(g_state->endtime, g_state->curtime);
-        secs = (secs<0)? 0 : secs;
+        if (secs <= 0) {
+            blink = (g_state->curtime % 2 == 1);
+            secs = 0;
+        }
         mins = secs/60;
         hours = mins/60;
         snprintf(text, sizeof(text),
@@ -138,9 +143,10 @@ draw_screen()
     symcount = sizeof(text)-1;
     stepx = g_state->font.w+1;
     textw = stepx*symcount-1;
-
     startx = g_state->center.x-textw/2;
     starty = g_state->center.y-g_state->font.h/2;
+
+    bgsave = g_state->font.bg;
 
     /* clear internal buffer */
     tb_clear();
@@ -149,14 +155,18 @@ draw_screen()
     for (i = 0; i < symcount; ++i) {
         Pos pos;
 
+        g_state->font.bg = blink? TEXT_BLINK_COLOR: bgsave;
+
         pos = (Pos){ .x = startx+i*stepx, .y = starty };
         if (draw_symbol(text[i], &pos, &g_state->font) < 0)
             return g_last_errno;
+
     }
 
     /* sync internal buffer and terminal */
     tb_present();
 
+    g_state->font.bg = bgsave;
     return 0;
 }
 
