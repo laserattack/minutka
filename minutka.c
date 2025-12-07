@@ -129,9 +129,9 @@ draw_screen()
         secs = difftime(g_state->endtime, g_state->curtime);
         if (secs <= 0) {
             blink = (g_state->curtime % 2 == 1);
-            secs = 0;
+            secs  = 0;
         }
-        mins = secs/60;
+        mins  = secs/60;
         hours = mins/60;
         snprintf(text, sizeof(text),
                 "%02d:%02d:%02d", hours%100, mins%60, secs%60);
@@ -141,12 +141,11 @@ draw_screen()
     }
 
     symcount = sizeof(text)-1;
-    stepx = g_state->font.w+1;
-    textw = stepx*symcount-1;
-    startx = g_state->center.x-textw/2;
-    starty = g_state->center.y-g_state->font.h/2;
-
-    bgsave = g_state->font.bg;
+    stepx    = g_state->font.w+1;
+    textw    = stepx*symcount-1;
+    startx   = g_state->center.x-textw/2;
+    starty   = g_state->center.y-g_state->font.h/2;
+    bgsave   = g_state->font.bg;
 
     /* clear internal buffer */
     tb_clear();
@@ -156,8 +155,8 @@ draw_screen()
         Pos pos;
 
         g_state->font.bg = blink? TEXT_BLINK_COLOR: bgsave;
+        pos              = (Pos){ .x = startx+i*stepx, .y = starty };
 
-        pos = (Pos){ .x = startx+i*stepx, .y = starty };
         if (draw_symbol(text[i], &pos, &g_state->font) < 0)
             return g_last_errno;
     }
@@ -174,25 +173,25 @@ update_sizes()
 {
     int w, h;
 
-    w = tb_width();
-    h = tb_height();
+    w               = tb_width();
+    h               = tb_height();
     g_state->center = (Pos){ .x = w/2, .y = h/2 };
 
     if (w < FONT_CHANGE_WIDTH)
         g_state->font = (Font){
             .data = (void *)g_font_small,
-            .w = SMALL_FONT_WIDTH,
-            .h = SMALL_FONT_HEIGHT,
-            .fg = g_state->font.fg,
-            .bg = g_state->font.bg,
+            .w    = SMALL_FONT_WIDTH,
+            .h    = SMALL_FONT_HEIGHT,
+            .fg   = g_state->font.fg,
+            .bg   = g_state->font.bg,
         };
     else
         g_state->font = (Font){
             .data = (void *)g_font_large,
-            .w = LARGE_FONT_WIDTH,
-            .h = LARGE_FONT_HEIGHT,
-            .fg = g_state->font.fg,
-            .bg = g_state->font.bg,
+            .w    = LARGE_FONT_WIDTH,
+            .h    = LARGE_FONT_HEIGHT,
+            .fg   = g_state->font.fg,
+            .bg   = g_state->font.bg,
         };
 }
 
@@ -233,9 +232,9 @@ tui_loop()
         if (g_state->mode == 't' && g_state->autoexit
                 && g_state->curtime >= g_state->endtime)
             break;
-        if (draw_screen() < 0) break;
-        if (handle_event() <= 0) break;
-        if (check_terminal() < 0) break;
+        if (draw_screen() < 0)      break;
+        if (handle_event() <= 0)    break;
+        if (check_terminal() < 0)   break;
     }
     tb_shutdown();
 }
@@ -288,7 +287,7 @@ main(int argc, char *argv[])
                     " more than one mode\n");
             usage();
         }
-        time = ARGF();
+        time      = ARGF();
         startmode = ARGC();
         if (time == NULL) {
             printf("[ERROR] required argument after flag '%c'\n", ARGC());
@@ -329,11 +328,12 @@ main(int argc, char *argv[])
     /* init start state */
     if (!(g_state = (State *)malloc(sizeof(State))))
         die("[ERROR] init state allocation error\n");
-    g_state->mode = startmode;
-    g_state->autoexit = autoexit;
+
+    g_state->mode      = startmode;
+    g_state->autoexit  = autoexit;
     g_state->starttime = time(NULL);
-    g_state->endtime = g_state->starttime + timertime;
-    g_state->font = (Font){ .fg = TEXT_COLOR, .bg = TEXT_COLOR };
+    g_state->endtime   = g_state->starttime + timertime;
+    g_state->font      = (Font){ .fg = TEXT_COLOR, .bg = TEXT_COLOR };
 
     tui_loop();
 
