@@ -160,7 +160,6 @@ draw_screen()
         pos = (Pos){ .x = startx+i*stepx, .y = starty };
         if (draw_symbol(text[i], &pos, &g_state->font) < 0)
             return g_last_errno;
-
     }
 
     /* sync internal buffer and terminal */
